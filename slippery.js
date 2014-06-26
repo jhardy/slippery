@@ -20,6 +20,7 @@
             activeClass:"active",
             styleClass: false,
             transition: 'slideIn',
+            slideBy: false,
             infinite: false,
             transitionSpeed: 1200,
             calculateHeight: false,
@@ -42,6 +43,8 @@
         }
     }
 
+
+
     Slippery.prototype.init = function() {
         var _ = this;
 
@@ -56,7 +59,12 @@
         _.active = _.options.startAt;
         _.current = _.options.startAt;
 
-        if(_.options.calculateHeight) _.calculateHeight();
+        if(_.options.calculateHeight) {
+          _.calculateHeight();
+          $(window).on('resize', function() {
+            _.calculateHeight();
+          })
+        }
 
 
         if(_.options.transition === "slideIn") _.slideSetup();
@@ -97,7 +105,9 @@
             _.current = _.active;
             _.stop();
             _.goTo(nextSlide, function() {
-                _.start();
+                 if(_.options.cycle) {
+                    _.start();
+                }
             });
         });
     }
@@ -151,7 +161,11 @@
         }
 
         _.handleActiveClass($(_.items[index]));
-        _.handleActiveClass($(_.paginationMarkers[index]), false);
+
+        if(_.options.pagination) {
+            _.handleActiveClass($(_.paginationMarkers[index]), false);
+        }
+
 
         _.transition(_.options.transition, $(_.items[index]), $(_.items[_.current]), index);
         _.active  = index;
@@ -201,6 +215,7 @@
 
                     //next slide
                     var leftVal = parseInt(_.container.css('left'), 10) - (_.itemWidth * _.direction);
+
                     if(_.direction === 1) {
                          _.container.animate({'left': leftVal}, _.options.transitionSpeed, function() {
                                 _.container.find(_.options.item + ":last").after(_.container.find(_.options.item + ":first"));
@@ -217,6 +232,7 @@
                     }
 
                 } else {
+                    var slideBy = (_.options.slideBy)?  _.options.slideBy : index;
 
                     _.container.animate({'left': -(_.itemWidth * index)}, _.options.transitionSpeed);
                 }
@@ -266,6 +282,7 @@
         var _ = this;
         _.container = $(_.options.container);
         _.itemWidth = $(_.items[0]).outerWidth(true);
+
         var widthCalc =   _.itemWidth * _.items.length;
         _.container.css('width', widthCalc);
 
